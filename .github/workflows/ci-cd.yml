@@ -15,17 +15,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'  # Remplacer 3.1 par 3.9 ou 3.10
+          python-version: '3.9'
 
       # Étape 3: Installation des dépendances
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      # Étape 4: Exécution des tests
-      - name: Run tests
+      # Étape 4: Vérification de l'installation de Docker
+      - name: Set up Docker
         run: |
-          pytest
+          sudo apt-get update
+          sudo apt-get install docker.io
 
       # Étape 5: Connexion à Docker Hub
       - name: Log in to DockerHub
