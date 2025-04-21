@@ -1,0 +1,54 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Ce workflow se déclenche sur chaque commit sur la branche 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Choix de l'environnement d'exécution (Ubuntu dans ce cas)
+
+    steps:
+      # Étape 1 : Checkout du code source depuis GitHub
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Étape 2 : Mise à jour des paquets et installation des dépendances Docker
+      - name: Install Docker dependencies
+        run: |
+          sudo apt-get update  # Met à jour la liste des paquets disponibles
+          sudo apt-get remove --purge -y containerd  # Supprime 'containerd' s'il est déjà installé
+          sudo apt-get install -y \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg2 \
+            lsb-release \
+            software-properties-common  # Installe les paquets nécessaires pour Docker
+
+          # Ajoute la clé GPG officielle de Docker
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+          # Ajoute le dépôt stable de Docker
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+          sudo apt-get update  # Réactualise les sources après avoir ajouté le dépôt Docker
+          sudo apt-get install -y containerd.io  # Installe 'containerd.io'
+
+      # Étape 3 : Construction de l'image Docker
+      - name: Build Docker image
+        run: |
+          docker build -t saidabnrhm/projet_final:latest .  # Construire l'image Docker avec le tag 'latest'
+
+      # Étape 4 : Connexion à Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}  # Utiliser ton nom d'utilisateur Docker Hub
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Utiliser ton mot de passe ou token Docker Hub
+
+      # Étape 5 : Pousser l'image Docker sur Docker Hub
+      - name: Push Docker image
+        run: |
+          docker push saidabnrhm/projet_final:latest  # Pousser l'image Docker vers Docker Hub
